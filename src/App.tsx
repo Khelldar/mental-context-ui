@@ -1,99 +1,32 @@
-import React, { createContext, useContext } from 'react';
-
+import React from 'react';
 import './App.css';
 import { ActivityOption } from './ActivityOption';
-import { ActivityOptionModel, ActivityModel } from './types';
-import { Machine, assign } from 'xstate';
+
 import Divider from 'antd/lib/divider';
 import { useMachine } from '@xstate/react';
 import { Activity } from './Activity';
-
-import * as uuid from 'uuid';
-
-const activityOptions: ActivityOptionModel[] = [
-  {
-    name: 'code',
-  },
-  {
-    name: 'meeting',
-  },
-  {
-    name: 'assiting others',
-  },
-  {
-    name: 'interview',
-  },
-];
-
-export interface Context {
-  activityOptions: ActivityOptionModel[];
-  activities: ActivityModel[];
-}
-
-export interface StateSchema {
-  states: {
-    idle: {};
-  };
-}
-
-export type Events =
-  | {
-      type: 'ACTIVITY_STARTED';
-      name: string;
-    }
-  | { type: 'ACTIVITY_STOPPED'; name: string };
-
-export const applicationStateMachine = Machine<Context, StateSchema, Events>({
-  id: 'app',
-  initial: 'idle',
-  context: {
-    activityOptions,
-    activities: [],
-  },
-  states: {
-    idle: {
-      on: {
-        ACTIVITY_STARTED: {
-          actions: [
-            assign((ctx, event) => {
-              return {
-                activities: [
-                  ...ctx.activities,
-                  { id: uuid.v4(), name: event.name, start: new Date().toISOString() },
-                ],
-              };
-            }),
-          ],
-        },
-        ACTIVITY_STOPPED: {
-          actions: [
-            assign((ctx, event) => {
-              const activities = ctx.activities;
-              const activity = activities.find(
-                ({ name, end }) => name === event.name && !end
-              );
-              if (!activity) return { activities };
-              activity.end = new Date().toISOString();
-              return { activities };
-            }),
-          ],
-        },
-      },
-    },
-  },
-});
-
-export const DispatcherContext: React.Context<(event: Events) => void> = createContext(
-  (_event: Events) => {}
-);
-
-export const useDispatcherContext = () => useContext(DispatcherContext);
+import { applicationStateMachine, DispatcherContext } from './appStateMachine';
+import { Flex } from 'rebass';
+import * as lodash from 'lodash';
+import { ActivityModel } from './types';
 
 export const App: React.FC = _props => {
   const [state, send] = useMachine(
     applicationStateMachine.withConfig({
       actions: {},
     })
+  );
+
+  const activitiesByName = lodash.reduce<ActivityModel, Record<string, ActivityModel[]>>(
+    state.context.activities,
+    (acc, activity) => {
+      if (!acc[activity.name]) {
+        acc[activity.name] = [];
+      }
+      acc[activity.name].push(activity);
+      return acc;
+    },
+    {}
   );
 
   return (
@@ -103,9 +36,38 @@ export const App: React.FC = _props => {
           <ActivityOption key={activityOption.name} activityOption={activityOption} />
         ))}
         <Divider />
-        {state.context.activities.map(activity => (
-          <Activity key={activity.id} activity={activity} />
-        ))}
+
+        <Flex
+          style={{
+            margin: '5px',
+            padding: '5px',
+            border: '1px black solid',
+            width: '700px',
+            height: '500px',
+          }}
+        >
+          <Flex flexDirection="column" width={1 / 5}>
+            {Object.keys(activitiesByName).map(name => (
+              <div style={{ height: '40px' }} key={name}>
+                {name}
+              </div>
+            ))}
+          </Flex>
+
+          <Flex width={4 / 5} flexDirection="column">
+            {Object.keys(activitiesByName)
+              .map(name => activitiesByName[name])
+              .map(activities => {
+                return (
+                  <Flex flexDirection="row" key={activities[0].name}>
+                    {activities.map(activity => (
+                      <Activity key={activity.id} activity={activity} />
+                    ))}
+                  </Flex>
+                );
+              })}
+          </Flex>
+        </Flex>
       </DispatcherContext.Provider>
     </div>
   );

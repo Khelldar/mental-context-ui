@@ -3,7 +3,7 @@ import { useMachine } from '@xstate/react';
 import { Machine } from 'xstate';
 import Button from 'antd/lib/button';
 import { ActivityOptionModel } from './types';
-import { useDispatcherContext } from './App';
+import { useDispatcherContext } from './appStateMachine';
 
 export interface Context {
   activityOption: ActivityOptionModel;
@@ -44,10 +44,10 @@ export const ActivityOption: React.FC<Props> = ({ activityOption }) => {
     machine.withConfig(
       {
         actions: {
-          activated: (ctx, e: any) => {
+          activated: (ctx, _event) => {
             dispatch({ type: 'ACTIVITY_STARTED', name: ctx.activityOption.name });
           },
-          deactivated: (ctx, e: any) => {
+          deactivated: (ctx, _event) => {
             dispatch({ type: 'ACTIVITY_STOPPED', name: ctx.activityOption.name });
           },
         },
@@ -57,7 +57,12 @@ export const ActivityOption: React.FC<Props> = ({ activityOption }) => {
   );
 
   return (
-    <Button type="primary" ghost={state.matches('active')} onClick={() => send('TOGGLE')}>
+    <Button
+      style={{ margin: '5px' }}
+      type="primary"
+      ghost={state.matches('active')}
+      onClick={() => send('TOGGLE')}
+    >
       {state.context.activityOption.name}
     </Button>
   );
