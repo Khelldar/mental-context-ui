@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import './App.css';
 import { ActivityOption } from './ActivityOption';
 
@@ -9,6 +9,8 @@ import { applicationStateMachine, DispatcherContext } from './appStateMachine';
 import { Flex } from 'rebass';
 import * as lodash from 'lodash';
 import { ActivityModel } from './types';
+import { Box } from './Box';
+import { TimeLine } from './TimeLine';
 
 export const App: React.FC = _props => {
   const [state, send] = useMachine(
@@ -16,6 +18,8 @@ export const App: React.FC = _props => {
       actions: {},
     })
   );
+
+  const [areaWidth, setAreaWidth] = useState(1700);
 
   const activitiesByName = lodash.reduce<ActivityModel, Record<string, ActivityModel[]>>(
     state.context.activities,
@@ -38,6 +42,34 @@ export const App: React.FC = _props => {
         <Divider />
 
         <Flex
+          style={{
+            overflow: 'auto',
+            margin: '5px',
+            border: '1px black solid',
+            width: '700px',
+            height: '500px',
+          }}
+          onScroll={e => {}}
+        >
+          {/* <div
+            style={{
+              position: 'relative',
+              top: `$0px`,
+              left: `$0px`,
+              height: `500px`,
+              width: `${areaWidth}px`,
+              border: '1px blue solid',
+              background: 'rgba(0, 0, 25, 0.5)',
+            }}
+          >
+            <p>areaWidth: {areaWidth}</p> */}
+          <TimeLine activity={activitiesByName['code'][0]}>
+            {/* <Box activity={activitiesByName['code'][0]} areaWidth={areaWidth} /> */}
+          </TimeLine>
+          {/* </div> */}
+        </Flex>
+
+        {/* <Flex
           style={{
             margin: '5px',
             padding: '5px',
@@ -67,7 +99,7 @@ export const App: React.FC = _props => {
                 );
               })}
           </Flex>
-        </Flex>
+        </Flex> */}
       </DispatcherContext.Provider>
     </div>
   );
