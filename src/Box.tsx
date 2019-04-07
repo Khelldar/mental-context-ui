@@ -10,6 +10,7 @@ import {
   addHours,
   endOfDay,
   startOfDay,
+  getSeconds,
 } from 'date-fns';
 import Icon from 'antd/lib/icon';
 import { useDispatcherContext } from './appStateMachine';
@@ -37,11 +38,12 @@ const machine = Machine<Context, StateSchema, Events>({
 });
 
 export interface Props {
-  areaWidth: number;
+  top: number;
+  secondsPerPX: number;
   activity: ActivityModel;
 }
 
-export const Box: React.FC<Props> = ({ activity, areaWidth }) => {
+export const Box: React.FC<Props> = ({ activity, secondsPerPX, top }) => {
   const dispatch = useDispatcherContext();
   const [state, send] = useMachine(
     machine.withConfig({
@@ -49,34 +51,39 @@ export const Box: React.FC<Props> = ({ activity, areaWidth }) => {
     })
   );
 
-  const now = new Date();
+  const [now, setNow] = useState(new Date());
 
-  const minViewTime = subHours(now, 1);
-  const maxtViewime = addHours(now, 0.5);
-  const secondsPerPX = differenceInSeconds(maxtViewime, minViewTime) / areaWidth;
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   const start = activity.start;
   const end = activity.end ? activity.end : now;
 
-  const top = 20;
-  const left = 0;
+  const left = differenceInSeconds(start, startOfDay(start)) / secondsPerPX;
   const height = 60;
-  const width = differenceInSeconds(end, start) / secondsPerPX;
+  const width = Math.max(10, differenceInSeconds(end, start) / secondsPerPX);
 
   return (
     <div
       style={{
-        position: 'relative',
+        position: 'absolute',
         top: `${top}px`,
         left: `${left}px`,
         height: `${height}px`,
         width: `${width}px`,
         border: '1px black solid',
+        borderRight: activity.end ? '1px black solid' : 'none',
         background: 'rgba(125, 25, 100, 0.5)',
       }}
     >
+      {activity.name}
       <p> width: {width} </p>
-      <p> secondsPerPX: {secondsPerPX} </p>
     </div>
   );
 };

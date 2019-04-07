@@ -63,7 +63,7 @@ export const App: React.FC = _props => {
             }}
           >
             <p>areaWidth: {areaWidth}</p> */}
-          <TimeLine activity={activitiesByName['code'][0]}>
+          <TimeLine activities={state.context.activities}>
             {/* <Box activity={activitiesByName['code'][0]} areaWidth={areaWidth} /> */}
           </TimeLine>
           {/* </div> */}

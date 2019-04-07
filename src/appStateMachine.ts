@@ -27,9 +27,22 @@ const activities: ActivityModel[] = [
   {
     id: uuid.v4(),
     name: 'code',
+    start: subHours(now, 8).toISOString(),
+    end: subHours(now, 6).toISOString(),
+  },
+  {
+    id: uuid.v4(),
+    name: 'code',
     start: subHours(now, 5).toISOString(),
     end: subHours(now, 4).toISOString(),
   },
+  {
+    id: uuid.v4(),
+    name: 'code',
+    start: subHours(now, 3.5).toISOString(),
+    end: subHours(now, 4).toISOString(),
+  },
+
   {
     id: uuid.v4(),
     name: 'meeting',

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, createRef } from 'react';
 import { useMachine } from '@xstate/react';
 import { Machine, Activity } from 'xstate';
 import { ActivityModel } from './types';
@@ -16,16 +16,22 @@ import { useDispatcherContext } from './appStateMachine';
 import { Box } from './Box';
 
 export interface Props {
-  activity: ActivityModel;
+  activities: ActivityModel[];
 }
 
 export const TimeLine: React.FC<Props> = props => {
   const minWidth = 700;
+  const maxWith = 3000;
 
   const [width, setAreaWidth] = useState(1500);
 
+  const secondsPerPX = 86400 / width;
+
+  const ref = createRef<HTMLDivElement>();
+
   return (
     <div
+      ref={ref}
       style={{
         height: `100%`,
         width: `100%`,
@@ -34,6 +40,7 @@ export const TimeLine: React.FC<Props> = props => {
     >
       <div
         style={{
+          position: 'relative',
           height: `100%`,
           width: `${width}px`,
           border: '1px black solid',
@@ -47,17 +54,22 @@ export const TimeLine: React.FC<Props> = props => {
         }}
         onWheel={e => {
           e.stopPropagation();
-          e.preventDefault();
 
           const delta = e.deltaY;
-          setAreaWidth(prev => Math.max(prev - delta, minWidth));
-        }}
-        onClick={e => {
-          setAreaWidth(prev => Math.max(prev - 10, minWidth));
+
+          setAreaWidth(prev => Math.min(Math.max(prev - delta, minWidth), maxWith));
         }}
       >
         <p> width: {width} </p>
-        <Box activity={props.activity} areaWidth={width} />
+        <p> secondsPerPX: {secondsPerPX} </p>
+        {props.activities.map(activity => (
+          <Box
+            key={activity.id}
+            activity={activity}
+            top={20}
+            secondsPerPX={secondsPerPX}
+          />
+        ))}
       </div>
     </div>
   );
